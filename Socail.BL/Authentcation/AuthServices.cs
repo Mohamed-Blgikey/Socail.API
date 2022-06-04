@@ -101,8 +101,8 @@ namespace Socail.BL.Authentcation
                 }
                 else
                 {
-                    await roleManager.CreateAsync(new IdentityRole("Patient"));
-                    await userManager.AddToRoleAsync(user, "Patient");
+                    await roleManager.CreateAsync(new IdentityRole("User"));
+                    await userManager.AddToRoleAsync(user, "User");
                 }
 
                 var jwtSecurityToken = await CreateJwtToken(user);

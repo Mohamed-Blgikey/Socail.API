@@ -1,8 +1,12 @@
 ﻿using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Newtonsoft.Json;
 using Socail.BL.Authentcation;
 using Socail.BL.Dtos;
 using Socail.BL.Helper;
+using Socail.DAL.Database;
+using Socail.DAL.Extend;
 
 namespace Socail.API.Controllers
 {
@@ -11,14 +15,19 @@ namespace Socail.API.Controllers
     public class AuthController : ControllerBase
     {
         private readonly IAuthServices auth;
+        private readonly UserManager<ApplicationUser> userManager;
+        private readonly RoleManager<IdentityRole> roleManager;
+
         #region fields
 
         #endregion
 
         #region Ctor
-        public AuthController(IAuthServices auth)
+        public AuthController(IAuthServices auth,UserManager<ApplicationUser> userManager,RoleManager<IdentityRole> roleManager)
         {
             this.auth = auth;
+            this.userManager = userManager;
+            this.roleManager = roleManager;
         }
         #endregion
 
@@ -38,6 +47,41 @@ namespace Socail.API.Controllers
             return Ok(new { message = result.Message, token = result.Token, expiresOn = result.ExpiresOn });
         }
         #endregion
+
+        //#region Register
+        //[HttpGet]
+        //[Route("~/seed")]
+        //public async Task<IActionResult> seed()
+        //{
+
+        //    try
+        //    {
+        //        var userData = System.IO.File.ReadAllText("Controllers/userData.json");
+        //        var users = JsonConvert.DeserializeObject<List<ApplicationUser>>(userData);
+        //        foreach (var user in users)
+        //        {
+        //            await userManager.CreateAsync(user, user.PasswordHash);
+        //            var RoleExsit = await roleManager.RoleExistsAsync("Admin");
+        //            if (!RoleExsit)
+        //            {
+        //                await roleManager.CreateAsync(new IdentityRole("Admin"));
+        //                await userManager.AddToRoleAsync(user, "Admin");
+        //            }
+        //            else
+        //            {
+        //                await roleManager.CreateAsync(new IdentityRole("User"));
+        //                await userManager.AddToRoleAsync(user, "User");
+        //            }
+        //        }
+        //        return Ok(new { message = "Done" });
+        //    }
+        //    catch (Exception)
+        //    {
+
+        //        throw;
+        //    }
+        //}
+        //#endregion
 
         #region Login
         [HttpPost]

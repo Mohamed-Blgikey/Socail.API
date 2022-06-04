@@ -4,6 +4,8 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Socail.BL.Authentcation;
 using Socail.BL.Helper;
+using Socail.BL.Interface;
+using Socail.BL.Repository;
 using Socail.DAL.Database;
 using Socail.DAL.Extend;
 using System.Text;
@@ -12,7 +14,8 @@ var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 
-builder.Services.AddControllers();
+builder.Services.AddControllers()
+    .AddNewtonsoftJson(opt => opt.SerializerSettings.ReferenceLoopHandling = Newtonsoft.Json.ReferenceLoopHandling.Ignore); ;
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
@@ -29,6 +32,8 @@ builder.Services.AddIdentity<ApplicationUser, IdentityRole>(opt =>
     .AddDefaultTokenProviders();
 
 builder.Services.AddScoped<IAuthServices,AuthServices>();
+builder.Services.AddScoped(typeof(ISocailRep<>), typeof(SocailRep<>));
+builder.Services.AddAutoMapper(opt => opt.AddProfile(new DomainProfile()));
 
 builder.Services.AddAuthentication(opt =>
 {
@@ -63,6 +68,7 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI();
 }
+
 app.UseCors(opt=>opt.AllowAnyHeader().AllowAnyMethod().AllowAnyOrigin());
 app.UseHttpsRedirection();
 

@@ -3,19 +3,19 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Identity;
-using Socail.DAL.Entity;
 
-namespace Socail.DAL.Extend
+namespace Socail.BL.Dtos
 {
-    public class ApplicationUser:IdentityUser
+    public class UserForReturnDto
     {
+        public string Id { get; set; }
         public string FirstName { get; set; }
         public string LastName { get; set; }
         public string FullName { get; set; }
         public string PhotoName { get; set; }
         public int Gender { get; set; }
         public DateTime DateOfBirth { get; set; }
+
         public DateTime Created { get; set; }
         public DateTime LastActive { get; set; }
         public string Introduction { get; set; }
@@ -23,7 +23,5 @@ namespace Socail.DAL.Extend
         public string Interests { get; set; }
         public string City { get; set; }
         public string Country { get; set; }
-
-        public ICollection<Photo> Photos { get; set; }
     }
 }

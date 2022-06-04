@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
+using Socail.DAL.Entity;
 using Socail.DAL.Extend;
 using System;
 using System.Collections.Generic;
@@ -22,5 +23,7 @@ namespace Socail.DAL.Database
             });
             base.OnModelCreating(builder);
         }
+
+        public DbSet<Photo> Photos { get; set; }
     }
 }
