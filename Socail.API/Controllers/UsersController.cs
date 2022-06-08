@@ -7,11 +7,13 @@ using Socail.DAL.Extend;
 using Socail.BL.Dtos;
 using Socail.BL.Interface;
 using Socail.DAL.Entity;
+using Microsoft.AspNetCore.Authorization;
 
 namespace Socail.API.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [Authorize]
     public class UsersController : ControllerBase
     {
         #region frilds
