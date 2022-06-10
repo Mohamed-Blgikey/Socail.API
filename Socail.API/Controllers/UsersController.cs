@@ -50,7 +50,7 @@ namespace Socail.API.Controllers
         [Route("~/GetUser/{id}")]
         public async Task<IActionResult> GetUser(string id)
         {
-            var user = imapper.Map<UserForReturnDto>(await userManager.FindByIdAsync(id));
+            var user = imapper.Map<UserForDetailsDto>(await userManager.FindByIdAsync(id));
             return Ok(user);
         }
         #endregion
@@ -68,6 +68,7 @@ namespace Socail.API.Controllers
 
         #region GetUserPhotos
         [HttpPut]
+
         [Route("~/EditUser")]
         public async Task<IActionResult> EditUser(UserForUpdateDto dto)
         {

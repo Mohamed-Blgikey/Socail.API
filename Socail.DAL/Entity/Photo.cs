@@ -15,6 +15,7 @@ namespace Socail.DAL.Entity
         public DateTime DateAdded { get; set; }    
         public bool IsMain { get; set; }
 
+        public string PublicId { get; set; }
         public string UserId { get; set; }
         public ApplicationUser User { get; set; }
     }

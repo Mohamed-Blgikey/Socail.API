@@ -4,7 +4,6 @@ using Microsoft.AspNetCore.Mvc;
 namespace Socail.API.Controllers
 {
     [ApiController]
-    [Authorize(Roles = "Admin")]
     [Route("[controller]")]
     public class WeatherForecastController : ControllerBase
     {

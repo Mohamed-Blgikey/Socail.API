@@ -61,6 +61,7 @@ builder.Services.AddAuthentication(opt =>
 
 builder.Services.AddCors();
 builder.Services.Configure<JWT>(builder.Configuration.GetSection("JWT"));
+builder.Services.Configure<CloudinarySettings>(builder.Configuration.GetSection("CloudinarySettings"));
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
