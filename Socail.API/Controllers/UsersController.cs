@@ -8,6 +8,7 @@ using Socail.BL.Dtos;
 using Socail.BL.Interface;
 using Socail.DAL.Entity;
 using Microsoft.AspNetCore.Authorization;
+using System.Security.Claims;
 
 namespace Socail.API.Controllers
 {
@@ -61,6 +62,37 @@ namespace Socail.API.Controllers
         {
             var photos = imapper.Map<IEnumerable<PhotoForDetailsDto>>(await photoRep.GetAllAsync(a=>a.UserId == id));
             return Ok(photos);
+        }
+        #endregion
+
+
+        #region GetUserPhotos
+        [HttpPut]
+        [Route("~/EditUser")]
+        public async Task<IActionResult> EditUser(UserForUpdateDto dto)
+        {
+            try
+            {
+                if (User.FindFirst(ClaimTypes.NameIdentifier).Value != dto.Id)
+                {
+                    return Unauthorized();
+                }
+                var user = await userManager.FindByIdAsync(dto.Id);
+                user.City = dto.City;
+                user.Country = dto.Country;
+                user.LookingFor = dto.LookingFor;
+                user.Interests = dto.Interests;
+                user.Introduction = dto.Introduction;
+                user.DateOfBirth = dto.DateOfBirth;
+    
+                var result = await userManager.UpdateAsync(user);
+                return Ok(result);
+            }
+            catch (Exception)
+            {
+
+                throw;
+            }
         }
         #endregion
         #endregion

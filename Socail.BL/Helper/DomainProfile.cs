@@ -17,6 +17,8 @@ namespace Socail.BL.Helper
             CreateMap<ApplicationUser, UserForReturnDto>();
             CreateMap<ApplicationUser, UserForDetailsDto>();
             CreateMap<Photo, PhotoForDetailsDto>();
+
+            CreateMap<UserForUpdateDto, ApplicationUser>();
         }
     }
 }
