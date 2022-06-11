@@ -78,7 +78,15 @@ namespace Socail.BL.Authentcation
                     UserName = registerDTO.Email,
                     FirstName = registerDTO.FirstName,
                     LastName = registerDTO.LastName,
-                    PhotoName = "defualt.png",
+                    PhotoName = "https://res.cloudinary.com/dz0g6ou0i/image/upload/v1654960873/defualt_w4v99c.png",
+                    Gender = registerDTO.Gender,
+                    City = registerDTO.City,
+                    Country = registerDTO.Country,
+                    DateOfBirth = registerDTO.DateOfBirth,
+                    LastActive =registerDTO.LastActive,
+                    Interests = "..",
+                    LookingFor="..",
+                    Introduction="..",
                 };
 
                 var result = await userManager.CreateAsync(user, registerDTO.Password);
