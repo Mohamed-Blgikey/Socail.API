@@ -1,6 +1,8 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using Socail.BL.Helper;
 using Socail.BL.Interface;
 using Socail.DAL.Database;
+using Socail.DAL.Extend;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -67,6 +69,24 @@ namespace Socail.BL.Repository
                 }
             }
             return await query.SingleOrDefaultAsync(match);
+        }
+
+        public async Task<PagedList<T>> GetPagination(UserParams userParams)
+        {
+            var data =context.Set<T>();
+            
+            return await PagedList<T>.CreateAsync(data,userParams.PageNumber,userParams.PageSize);
+        }
+
+        public async Task<PagedList<ApplicationUser>> GetUsers(UserParams userParams)
+        {
+            var data = context.Users.AsQueryable();
+
+            data = data.Where(u => u.Id != userParams.UserId);
+            data = data.Where(u => u.Gender == userParams.Gender);
+
+
+            return await PagedList<ApplicationUser>.CreateAsync(data, userParams.PageNumber, userParams.PageSize);
         }
 
         public async Task<bool> SaveAll()

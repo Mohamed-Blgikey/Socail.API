@@ -9,6 +9,7 @@ using Socail.BL.Interface;
 using Socail.DAL.Entity;
 using Microsoft.AspNetCore.Authorization;
 using System.Security.Claims;
+using Socail.BL.Helper;
 
 namespace Socail.API.Controllers
 {
@@ -21,14 +22,16 @@ namespace Socail.API.Controllers
         private readonly UserManager<ApplicationUser> userManager;
         private readonly IMapper imapper;
         private readonly ISocailRep<Photo> photoRep;
+        private readonly ISocailRep<ApplicationUser> rep;
 
         #endregion
         #region Ctor
-        public UsersController(UserManager<ApplicationUser> userManager,IMapper imapper,ISocailRep<Photo> photoRep)
+        public UsersController(UserManager<ApplicationUser> userManager,IMapper imapper,ISocailRep<Photo> photoRep, ISocailRep<ApplicationUser> rep)
         {
             this.userManager = userManager;
             this.imapper = imapper;
             this.photoRep = photoRep;
+            this.rep = rep;
         }
         #endregion
 
@@ -36,37 +39,46 @@ namespace Socail.API.Controllers
         #region Actions
         #region GetUsers
         [HttpGet]
+
         [Route("~/GetUsers")]
-        public async Task<IActionResult> GetUsers()
+        public async Task<IActionResult> GetUsers([FromQuery] UserParams userparams)
         {
-            
-            var users = imapper.Map<IEnumerable< UserForReturnDto>> (userManager.Users);
-            return Ok(users);
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier).Value;
+            var user = await userManager.FindByIdAsync(userId);
+            userparams.UserId = user.Id;
+            if (userparams.Gender == null)
+            {
+                userparams.Gender = user.Gender == 1?0:1;
+            }
+
+            var usersRepo = await rep.GetUsers(userparams);
+            var users = imapper.Map<IEnumerable< UserForReturnDto>> (usersRepo);
+            Response.AddPagination(usersRepo.CurrentPage, usersRepo.PageSize, usersRepo.TotalCount, usersRepo.TotalPage);
+            return Ok(new
+            {
+                currentPage = usersRepo.CurrentPage,
+                itemPerPage = usersRepo.PageSize,
+                totalItems = usersRepo.TotalCount,
+                totalPages = usersRepo.TotalPage,
+                data = users,
+            });
         }
         #endregion
 
         #region GetUsers
         [HttpGet]
         [Route("~/GetUser/{id}")]
+        [AllowAnonymous]
         public async Task<IActionResult> GetUser(string id)
         {
-            var user = imapper.Map<UserForDetailsDto>(await userManager.FindByIdAsync(id));
-            return Ok(user);
-        }
-        #endregion
-
-        #region GetUserPhotos
-        [HttpGet]
-        [Route("~/GetUserPhotos/{id}")]
-        public async Task<IActionResult> GetUserPhotos(string id)
-        {
-            var photos = imapper.Map<IEnumerable<PhotoForDetailsDto>>(await photoRep.GetAllAsync(a=>a.UserId == id));
-            return Ok(photos);
+            var data =  rep.GetAllAsync(a => a.Id == id, new[] { "Photos" }).Result;
+            var user = imapper.Map<IEnumerable<UserForDetailsDto>>(data);
+            return Ok(user.FirstOrDefault());
         }
         #endregion
 
 
-        #region GetUserPhotos
+        #region EditUser
         [HttpPut]
 
         [Route("~/EditUser")]

@@ -152,6 +152,7 @@ namespace Socail.BL.Authentcation
                 new Claim(JwtRegisteredClaimNames.Email, user.Email),
                 new Claim("photoName", user.PhotoName),
                 new Claim("fullName", user.FullName),
+                new Claim("gender", user.Gender.ToString())
             }
             .Union(userClaims)
             .Union(roleClaims);
