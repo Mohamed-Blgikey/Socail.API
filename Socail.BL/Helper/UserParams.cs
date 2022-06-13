@@ -21,6 +21,8 @@ namespace Socail.BL.Helper
 
         public string? UserId { get; set; }
         public int? Gender { get; set; }
+        public bool Likees { get; set; } = false;
+        public bool Likers { get; set; } = false;
 
     }
 }

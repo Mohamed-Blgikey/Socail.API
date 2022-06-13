@@ -81,14 +81,38 @@ namespace Socail.BL.Repository
         public async Task<PagedList<ApplicationUser>> GetUsers(UserParams userParams)
         {
             var data = context.Users.AsQueryable();
-
             data = data.Where(u => u.Id != userParams.UserId);
+            if (userParams.Likers)
+            {
+                var userLikers = await GetUserLikes(userParams.UserId,true);
+                data = data.Where(u => userLikers.Contains(u.Id));
+            }
+            
+            if (userParams.Likees)
+            {
+                var userLikees = await GetUserLikes(userParams.UserId, false);
+                data = data.Where(u => userLikees.Contains(u.Id));
+            }
             data = data.Where(u => u.Gender == userParams.Gender);
 
 
             return await PagedList<ApplicationUser>.CreateAsync(data, userParams.PageNumber, userParams.PageSize);
         }
 
+        private async Task<IEnumerable<string>> GetUserLikes(string id,bool likers)
+        {
+            var user = await context.Users.Include(u=>u.Likers).Include(u=>u.Likees).FirstOrDefaultAsync(u=>u.Id == id);
+            if (likers)
+            {
+                var x = user.Likers.Where(u => u.LikeeId == id).Select(l => l.LikerId);
+                return x;
+            }
+            else
+            {
+                var x = user.Likees.Where(u => u.LikerId == id).Select(l => l.LikeeId);
+                return x;
+            }
+        }
         public async Task<bool> SaveAll()
         {
             return await context.SaveChangesAsync() > 0;

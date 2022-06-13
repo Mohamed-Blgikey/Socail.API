@@ -21,9 +21,30 @@ namespace Socail.DAL.Database
                 user.Property(x=>x.FullName)
                 .HasComputedColumnSql("[FirstName] + ' ' + [LastName]");
             });
+
+
+            builder.Entity<Like>()
+                .HasKey(a => new { a.LikerId,a.LikeeId});
+
+            builder.Entity<Like>()
+                .HasOne(l=>l.Likee)
+                .WithMany(u=>u.Likers)
+                .HasForeignKey(l=>l.LikeeId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            builder.Entity<Like>()
+                .HasOne(l => l.Liker)
+                .WithMany(u => u.Likees)
+                .HasForeignKey(l => l.LikerId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+
             base.OnModelCreating(builder);
+
+
         }
 
-        public DbSet<Photo> Photos { get; set; }
+        public virtual DbSet<Photo> Photos { get; set; }
+        public virtual DbSet<Like> Likes { get; set; }
     }
 }

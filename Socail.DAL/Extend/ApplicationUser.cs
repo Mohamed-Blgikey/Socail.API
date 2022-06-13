@@ -32,5 +32,7 @@ namespace Socail.DAL.Extend
         public string? Country { get; set; }
 
         public IEnumerable<Photo> Photos { get; set; }
+        public IEnumerable<Like> Likers { get; set; }
+        public IEnumerable<Like> Likees { get; set; }
     }
 }

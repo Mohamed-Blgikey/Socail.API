@@ -66,6 +66,10 @@ var app = builder.Build();
 
 // Configure the HTTP request pipeline.
 
+if (app.Environment.IsDevelopment())
+{
+
+}
     app.UseSwagger();
     app.UseSwaggerUI();
 
@@ -73,8 +77,8 @@ var app = builder.Build();
 app.UseStaticFiles(new StaticFileOptions
 {
     FileProvider = new PhysicalFileProvider(
-                    Path.Combine(Directory.GetCurrentDirectory(), "wwwroot/Img")),
-    RequestPath = "/wwwroot/Img"
+                    Path.Combine(Directory.GetCurrentDirectory(), "wwwroot")),
+    RequestPath = "/wwwroot"
 });
 
 

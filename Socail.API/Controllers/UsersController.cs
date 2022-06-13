@@ -23,15 +23,17 @@ namespace Socail.API.Controllers
         private readonly IMapper imapper;
         private readonly ISocailRep<Photo> photoRep;
         private readonly ISocailRep<ApplicationUser> rep;
+        private readonly ISocailRep<Like> likeRep;
 
         #endregion
         #region Ctor
-        public UsersController(UserManager<ApplicationUser> userManager,IMapper imapper,ISocailRep<Photo> photoRep, ISocailRep<ApplicationUser> rep)
+        public UsersController(UserManager<ApplicationUser> userManager,IMapper imapper,ISocailRep<Photo> photoRep, ISocailRep<ApplicationUser> rep, ISocailRep<Like> likeRep)
         {
             this.userManager = userManager;
             this.imapper = imapper;
             this.photoRep = photoRep;
             this.rep = rep;
+            this.likeRep = likeRep;
         }
         #endregion
 
@@ -53,7 +55,6 @@ namespace Socail.API.Controllers
 
             var usersRepo = await rep.GetUsers(userparams);
             var users = imapper.Map<IEnumerable< UserForReturnDto>> (usersRepo);
-            Response.AddPagination(usersRepo.CurrentPage, usersRepo.PageSize, usersRepo.TotalCount, usersRepo.TotalPage);
             return Ok(new
             {
                 currentPage = usersRepo.CurrentPage,
@@ -100,6 +101,53 @@ namespace Socail.API.Controllers
     
                 var result = await userManager.UpdateAsync(user);
                 return Ok(result);
+            }
+            catch (Exception)
+            {
+
+                throw;
+            }
+        }
+        #endregion
+
+        #region MakeLike
+        [HttpPost]
+
+        [Route("~/MakeLike/{userId}/{recipentId}")]
+        public async Task<IActionResult> MakeLike(string userId , string recipentId)
+        {
+            try
+            {
+                if (User.FindFirst(ClaimTypes.NameIdentifier).Value != userId)
+                {
+                    return Unauthorized();
+                }
+                var like = await likeRep.GetByIdAsync(l=>l.LikerId== userId && l.LikeeId == recipentId);
+                
+                if (like != null)
+                {
+                    return Ok(new { message = "تم الاعجاب من قبل" });
+                }
+                if (await userManager.FindByIdAsync(recipentId) == null)
+                {
+                    return NotFound();
+                }
+
+                var newLike = new Like
+                {
+                    LikeeId = recipentId,
+                    LikerId = userId,
+                };
+
+                likeRep.Add(newLike);
+                if (await likeRep.SaveAll())
+                {
+                    return Ok();
+                }
+                
+
+
+                return Ok(new {message = " فشل الاعجاب"});
             }
             catch (Exception)
             {
