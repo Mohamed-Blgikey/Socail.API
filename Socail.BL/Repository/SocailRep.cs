@@ -2,6 +2,7 @@
 using Socail.BL.Helper;
 using Socail.BL.Interface;
 using Socail.DAL.Database;
+using Socail.DAL.Entity;
 using Socail.DAL.Extend;
 using System;
 using System.Collections.Generic;
@@ -39,6 +40,19 @@ namespace Socail.BL.Repository
             return item;
         }
 
+        public async Task<T> GetByIdAsync(Expression<Func<T, bool>> match, string[] includes = null)
+        {
+            IQueryable<T> query = context.Set<T>();
+            if (includes != null)
+            {
+                foreach (var include in includes)
+                {
+                    query = query.Include(include);
+                }
+            }
+            return await query.SingleOrDefaultAsync(match);
+        }
+
         public async Task<IEnumerable<T>> GetAllAsync(Expression<Func<T, bool>> match, string[] includes = null)
         {
             IQueryable<T> query = context.Set<T>();
@@ -52,23 +66,13 @@ namespace Socail.BL.Repository
             return await query.Where(match).ToListAsync();
         }
 
+        
+
+        
         public T GetById(int id)
         {
             var data = context.Set<T>().Find(id);
             return data;
-        }
-
-        public async Task<T> GetByIdAsync(Expression<Func<T, bool>> match, string[] includes = null)
-        {
-            IQueryable<T> query = context.Set<T>();
-            if (includes != null)
-            {
-                foreach (var include in includes)
-                {
-                    query = query.Include(include);
-                }
-            }
-            return await query.SingleOrDefaultAsync(match);
         }
 
         public async Task<PagedList<T>> GetPagination(UserParams userParams)
@@ -117,5 +121,36 @@ namespace Socail.BL.Repository
         {
             return await context.SaveChangesAsync() > 0;
         }
+
+        public async Task<IEnumerable<Message>> GetConversation(string userId, string RecsipientId)
+        {
+            var messages = await context.Messages.Include(m => m.Sender).Include(m => m.Resipient)
+                .Where(m=>(m.ResipientId == userId && m.SenderId == RecsipientId) || (m.ResipientId == RecsipientId && m.SenderId == userId))
+                .OrderBy(m=>m.messageSent).ToListAsync();
+
+            return messages;
+
+
+        }
+        public async Task<PagedList<Message>> GetMessagesForUser(MessageParams messageParams)
+        {
+            var messages = context.Messages.Include(m => m.Sender).Include(m => m.Resipient).AsQueryable();
+            switch (messageParams.MessageType)
+            {
+                case "Inbox":
+                    messages = messages.Where(m => m.ResipientId == messageParams.UserId && m.RecipientDeleted == false);
+                    break;
+                case "Outbox":
+                    messages = messages.Where(m => m.SenderId == messageParams.UserId && m.SenderDeleted == false);
+                    break;
+                default:
+                    messages = messages.Where(m => m.ResipientId == messageParams.UserId && m.RecipientDeleted == false && m.IsRead == false);
+                    break;
+            }
+            messages = messages.OrderByDescending(m => m.messageSent);
+            return await PagedList<Message>.CreateAsync(messages, messageParams.PageNumber, messageParams.PageSize);
+        }
+
+        
     }
 }

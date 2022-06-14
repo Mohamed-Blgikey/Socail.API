@@ -34,5 +34,7 @@ namespace Socail.DAL.Extend
         public IEnumerable<Photo> Photos { get; set; }
         public IEnumerable<Like> Likers { get; set; }
         public IEnumerable<Like> Likees { get; set; }
+        public IEnumerable<Message> MessageSent { get; set; }
+        public IEnumerable<Message> MessageRecive { get; set; }
     }
 }

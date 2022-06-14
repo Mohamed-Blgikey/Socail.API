@@ -39,6 +39,20 @@ namespace Socail.DAL.Database
                 .OnDelete(DeleteBehavior.Restrict);
 
 
+            builder.Entity<Message>()
+                .HasOne(m => m.Sender)
+                .WithMany(u => u.MessageSent)
+                .HasForeignKey(m => m.SenderId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            builder.Entity<Message>()
+                .HasOne(m => m.Resipient)
+                .WithMany(u => u.MessageRecive)
+                .HasForeignKey(m => m.ResipientId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+
+
             base.OnModelCreating(builder);
 
 
@@ -46,5 +60,6 @@ namespace Socail.DAL.Database
 
         public virtual DbSet<Photo> Photos { get; set; }
         public virtual DbSet<Like> Likes { get; set; }
+        public virtual DbSet<Message> Messages { get; set; }
     }
 }

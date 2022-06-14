@@ -1,4 +1,5 @@
 ﻿using Socail.BL.Helper;
+using Socail.DAL.Entity;
 using Socail.DAL.Extend;
 using System;
 using System.Collections.Generic;
@@ -12,6 +13,8 @@ namespace Socail.BL.Interface
     public interface ISocailRep<T> where T : class
     {
         Task<PagedList<T>> GetPagination(UserParams userParams);
+        Task<PagedList<Message>> GetMessagesForUser(MessageParams messageParams);
+        Task<IEnumerable<Message>> GetConversation(string userId,string RecsipientId);
         Task<PagedList<ApplicationUser>> GetUsers(UserParams userParams);
         Task<IEnumerable<T>> GetAllAsync(Expression<Func<T, bool>> match, string[] includes = null);
         Task<T> GetByIdAsync(Expression<Func<T, bool>> match, string[] includes = null);
