@@ -78,12 +78,6 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 
 
-app.UseStaticFiles(new StaticFileOptions
-{
-    FileProvider = new PhysicalFileProvider(
-                    Path.Combine(Directory.GetCurrentDirectory(), "wwwroot")),
-    RequestPath = "/wwwroot"
-});
 
 
 app.UseCors(opt=>opt.AllowAnyHeader().AllowAnyMethod().AllowAnyOrigin());
@@ -92,6 +86,14 @@ app.UseHttpsRedirection();
 app.UseAuthentication();
 
 app.UseAuthorization();
+
+app.UseDefaultFiles();
+app.UseStaticFiles(new StaticFileOptions
+{
+    FileProvider = new PhysicalFileProvider(
+                    Path.Combine(Directory.GetCurrentDirectory(), "wwwroot")),
+    RequestPath = "/wwwroot"
+});
 
 app.MapControllers();
 
