@@ -19,6 +19,7 @@ namespace Socail.BL.Interface
         Task<IEnumerable<T>> GetAllAsync(Expression<Func<T, bool>> match, string[] includes = null);
         Task<T> GetByIdAsync(Expression<Func<T, bool>> match, string[] includes = null);
 
+        Task<IEnumerable<ApplicationUser>> GetLikersAndLikees(string userId, string type);
         T GetById(int id);
         Task<T> Add(T item);
         T Edit(T item);

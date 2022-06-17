@@ -23,7 +23,6 @@ namespace Socail.API.Controllers
 
         [HttpGet]
         [Route("~/GetUserWithRoles")]
-        [Authorize(Roles ="Admin,Modirator")]
         public async Task<IActionResult> GetUserWithRoles()
         {
             List<object> userRoles = new List<object>();

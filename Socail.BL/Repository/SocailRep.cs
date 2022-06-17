@@ -151,6 +151,25 @@ namespace Socail.BL.Repository
             return await PagedList<Message>.CreateAsync(messages, messageParams.PageNumber, messageParams.PageSize);
         }
 
-        
+        public async Task<IEnumerable<ApplicationUser>> GetLikersAndLikees(string userId, string type)
+        {
+            var users = context.Users.Include(u => u.Photos).OrderBy(u => u.FullName).AsQueryable();
+            if (type == "likers")
+            {
+                var userLikers = await GetUserLikes(userId, true);
+                users = users.Where(u => userLikers.Contains(u.Id));
+            }
+            else if (type == "likees")
+            {
+                var userLikees = await GetUserLikes(userId, false);
+                users = users.Where(u => userLikees.Contains(u.Id));
+            }
+            else
+            {
+                throw new Exception("لا توجد بيانات متاحة");
+            }
+
+            return users.ToList();
+        }
     }
 }

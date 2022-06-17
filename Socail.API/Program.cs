@@ -1,3 +1,5 @@
+using DinkToPdf;
+using DinkToPdf.Contracts;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -58,6 +60,8 @@ builder.Services.AddAuthentication(opt =>
     };
 });
 
+
+builder.Services.AddSingleton(typeof(IConverter),new SynchronizedConverter(new PdfTools()));
 
 builder.Services.AddCors();
 builder.Services.Configure<JWT>(builder.Configuration.GetSection("JWT"));
