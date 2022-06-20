@@ -1,15 +1,18 @@
 ﻿using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using Socail.BL.Dtos;
 using Socail.BL.Helper;
 using Socail.DAL.Database;
+using Socail.DAL.Entity;
 using Socail.DAL.Extend;
 using System;
 using System.Collections.Generic;
 using System.IdentityModel.Tokens.Jwt;
 using System.Linq;
 using System.Security.Claims;
+using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -40,6 +43,7 @@ namespace Socail.BL.Authentcation
         {
             try
             {
+                var authModel = new AuthModel();
                 var user = await userManager.FindByEmailAsync(loginDTO.Email);
 
                 if (user == null || !await userManager.CheckPasswordAsync(user, loginDTO.Password))
@@ -47,13 +51,25 @@ namespace Socail.BL.Authentcation
 
                 var jwtSecurityToken = await CreateJwtToken(user);
 
-                return new AuthModel
+                authModel.Message = "Success";
+                authModel.Token = new JwtSecurityTokenHandler().WriteToken(jwtSecurityToken);
+                authModel.IsAuthencated = true;
+                if (user.RefreshTokens.Any(t=>t.IsActive))
                 {
-                    Message = "Success",
-                    Token = new JwtSecurityTokenHandler().WriteToken(jwtSecurityToken),
-                    ExpiresOn = jwtSecurityToken.ValidTo,
-                    IsAuthencated = true
-                };
+                    var activeRefreshToken = user.RefreshTokens.FirstOrDefault(t => t.IsActive);
+                    authModel.RefrshToken = activeRefreshToken.Token;
+                    authModel.RefrshTokenExpiration = activeRefreshToken.ExpiresOn;
+                }
+                else
+                {
+                    var refreshToken = GenerateRefreshToken();
+                    authModel.RefrshToken = refreshToken.Token;
+                    authModel.RefrshTokenExpiration = refreshToken.ExpiresOn;
+                    user.RefreshTokens.Add(refreshToken);
+                    await userManager.UpdateAsync(user);
+                }
+
+                return authModel;
             }
             catch (Exception)
             {
@@ -120,7 +136,7 @@ namespace Socail.BL.Authentcation
                 {
                     Message = "Success",
                     Token = new JwtSecurityTokenHandler().WriteToken(jwtSecurityToken),
-                    ExpiresOn = jwtSecurityToken.ValidTo,
+                    //ExpiresOn = jwtSecurityToken.ValidTo,
                     IsAuthencated = true
                 };
             }
@@ -164,7 +180,7 @@ namespace Socail.BL.Authentcation
                 issuer: jwt.Value.Issuer,
                 audience: jwt.Value.Audience,
                 claims: claims,
-                expires: DateTime.Now.AddDays(jwt.Value.DurationInDays),
+                expires: DateTime.Now.AddMinutes(jwt.Value.DurationInMinuts),
                 signingCredentials: signingCredentials);
 
 
@@ -174,5 +190,112 @@ namespace Socail.BL.Authentcation
 
         }
         #endregion
+
+
+        public async Task<AuthModel> RefreshToken(string token)
+        {
+
+            var authModel = new AuthModel();
+
+            var user = await userManager.Users.SingleOrDefaultAsync(u => u.RefreshTokens.Any(t => t.Token == token));
+
+            if (user == null)
+            {
+                authModel.Message = "Invalid token";
+                return authModel;
+            }
+
+            var refreshToken = user.RefreshTokens.Single(t => t.Token == token);
+
+            if (!refreshToken.IsActive)
+            {
+                authModel.Message = "Inactive token";
+                return authModel;
+            }
+
+            refreshToken.RevokedOn = DateTime.UtcNow;
+
+            var newRefreshToken = GenerateRefreshToken();
+            user.RefreshTokens.Add(newRefreshToken);
+            await userManager.UpdateAsync(user);
+
+            var jwtToken = await CreateJwtToken(user);
+            authModel.IsAuthencated = true;
+            authModel.Token = new JwtSecurityTokenHandler().WriteToken(jwtToken);
+            var roles = await userManager.GetRolesAsync(user);
+            authModel.RefrshToken = newRefreshToken.Token;
+            authModel.RefrshTokenExpiration = newRefreshToken.ExpiresOn;
+
+            return authModel;
+        }
+
+
+        private RefreshToken GenerateRefreshToken()
+        {
+            var randomNumber = new byte[32];
+            using var generator = new RNGCryptoServiceProvider();
+            generator.GetBytes(randomNumber);
+            return new RefreshToken
+            {
+                Token = Convert.ToBase64String(randomNumber),
+                ExpiresOn = DateTime.UtcNow.AddDays(60),
+                CreatedOn = DateTime.UtcNow,
+
+            };
+            
+        }
+
+        public async Task<AuthModel> RefreshTokenAsync(string token)
+        {
+            var authModel = new AuthModel();
+            var user = await userManager.Users.SingleOrDefaultAsync(u => u.RefreshTokens.Any(t => t.Token == token));
+
+            if (user == null)
+            {
+                authModel.Message = "Invalid Token";
+                return authModel;
+            }
+
+            var refreshToken = user.RefreshTokens.Single(t=>t.Token ==token);
+            if (!refreshToken.IsActive)
+            {
+                authModel.Message = "InActive Token";
+                return authModel;
+            }
+
+            refreshToken.RevokedOn = DateTime.UtcNow;
+            var newRefreshToken = GenerateRefreshToken();
+            user.RefreshTokens.Add(newRefreshToken);
+            await userManager.UpdateAsync(user);
+
+            var jwtToken = await CreateJwtToken(user);
+
+            authModel.IsAuthencated = true;
+            authModel.Token = new JwtSecurityTokenHandler().WriteToken(jwtToken);
+            authModel.RefrshToken = newRefreshToken.Token;
+            authModel.RefrshTokenExpiration = newRefreshToken.ExpiresOn;
+
+            return authModel;
+        }
+
+
+        public async Task<bool> ReVokeTokenAsync(string token)
+        {
+            var user = await userManager.Users.SingleOrDefaultAsync(u => u.RefreshTokens.Any(t => t.Token == token));
+
+            if (user == null)
+                return false;
+
+            var refreshToken = user.RefreshTokens.Single(t => t.Token == token);
+            if (!refreshToken.IsActive)
+                return false;
+
+            refreshToken.RevokedOn = DateTime.UtcNow;
+            await userManager.UpdateAsync(user);
+
+
+            return true;
+        }
+
     }
 }

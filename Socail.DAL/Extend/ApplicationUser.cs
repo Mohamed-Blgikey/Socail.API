@@ -36,5 +36,7 @@ namespace Socail.DAL.Extend
         public IEnumerable<Like> Likees { get; set; }
         public IEnumerable<Message> MessageSent { get; set; }
         public IEnumerable<Message> MessageRecive { get; set; }
+
+        public List<RefreshToken>? RefreshTokens { get; set; }
     }
 }

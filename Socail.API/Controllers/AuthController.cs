@@ -43,8 +43,9 @@ namespace Socail.API.Controllers
 
             if (!result.IsAuthencated)
                 return Ok(new { message = result.Message });
-
-            return Ok(new { message = result.Message, token = result.Token, expiresOn = result.ExpiresOn });
+             
+            SetRefreshTokenInCookie(result.RefrshToken, result.RefrshTokenExpiration);
+            return Ok(new { message = result.Message, token = result.Token, RefrshTokenExpiration = result.RefrshTokenExpiration });
         }
         #endregion
 
@@ -96,8 +97,57 @@ namespace Socail.API.Controllers
             if (!result.IsAuthencated)
                 return Ok(new { message = result.Message });
 
-            return Ok(new { message = result.Message, token = result.Token, expiresOn = result.ExpiresOn });
+            if (!string.IsNullOrEmpty(result.RefrshToken))
+            {
+                SetRefreshTokenInCookie(result.RefrshToken, result.RefrshTokenExpiration);
+            }
+
+            return Ok(new { message = result.Message, token = result.Token , RefrshTokenExpiration =result.RefrshTokenExpiration });
+        }
+
+        [HttpGet("~/GetRefreshToken")]
+        public async Task<IActionResult> GetRefreshToken()
+        {
+            var refreshToken = Request.Cookies["refreshToken"];
+
+            var result = await auth.RefreshTokenAsync(refreshToken);
+
+            if (!result.IsAuthencated)
+                return Ok(result);
+            SetRefreshTokenInCookie(result.RefrshToken,result.RefrshTokenExpiration);
+
+            return Ok(result);
+        }
+
+        [HttpPost("~/RevokeToken")]
+        public async Task<IActionResult> RevokeToken([FromBody] RevokeTokenDto dto)
+        {
+
+           var token = dto.Token ?? Request.Cookies["refreshToken"];
+            if (string.IsNullOrEmpty(token))
+                return Ok(new {message = "Token Is Required"});
+
+            var result = await auth.ReVokeTokenAsync(token);
+
+            if (!result)
+                return Ok(new {message = "Token Is Invalid"});
+
+            return Ok(new { message = "Done!"});
+
+
         }
         #endregion
+
+
+        private void SetRefreshTokenInCookie(string refreshToken, DateTime expires)
+        {
+            var cookieOptions = new CookieOptions
+            {
+                HttpOnly = true,
+                Expires = expires.ToLocalTime()
+            };
+
+            Response.Cookies.Append("refreshToken", refreshToken, cookieOptions);
+        }
     }
 }

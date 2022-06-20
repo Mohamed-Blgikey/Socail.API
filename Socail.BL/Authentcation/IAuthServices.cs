@@ -12,5 +12,8 @@ namespace Socail.BL.Authentcation
     {
         Task<AuthModel> Register(RegisterDTO registerDTO);
         Task<AuthModel> Login(LoginDTO loginDTO);
+
+        Task<AuthModel> RefreshTokenAsync(string token);
+        Task<bool> ReVokeTokenAsync(string token);
     }
 }
