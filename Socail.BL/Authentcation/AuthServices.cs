@@ -180,7 +180,7 @@ namespace Socail.BL.Authentcation
                 issuer: jwt.Value.Issuer,
                 audience: jwt.Value.Audience,
                 claims: claims,
-                expires: DateTime.Now.AddMinutes(jwt.Value.DurationInMinuts),
+                expires: DateTime.Now.AddDays(jwt.Value.DurationInDayes),
                 signingCredentials: signingCredentials);
 
 
